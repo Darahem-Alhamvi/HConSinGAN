@@ -1,3 +1,4 @@
+import skimage.color
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
@@ -127,6 +128,15 @@ def calc_gradient_penalty(netD, real_data, fake_data, LAMBDA, device):
 
 def read_image(opt):
     x = img.imread('%s' % (opt.input_name))
+    if opt.convert_to_YCbCr:
+        x = np2torch(x,opt)
+    x = x[:,0:3,:,:]
+    return x
+
+
+def read_image_as_YCbCr(opt):
+    x = img.imread('%s' % (opt.input_name))
+    x = skimage.color.rgb2ycbcr(x)
     x = np2torch(x,opt)
     x = x[:,0:3,:,:]
     return x
@@ -289,7 +299,16 @@ def dilate_mask(mask,opt):
     mask = filters.gaussian(mask, sigma=5)
     nc_im = opt.nc_im
     opt.nc_im = 1
-    mask = np2torch(mask,opt)
+    # mask = np2torch(mask,opt)
+
+    x = mask[:, :, None, None]
+    x = x.transpose(3, 2, 0, 1)
+    x = torch.from_numpy(x)
+    if not(opt.not_cuda):
+        x = move_to_gpu(x)
+    x = x.type(torch.cuda.FloatTensor) if not(opt.not_cuda) else x.type(torch.FloatTensor)
+    mask = norm(x)
+
     opt.nc_im = nc_im
     mask = mask.expand(1, 3, mask.shape[2], mask.shape[3])
     mask = (mask-mask.min())/(mask.max()-mask.min())

@@ -20,7 +20,11 @@ def train(opt):
     print("\t learning rate scaling: {}".format(opt.lr_scale))
     print("\t non-linearity: {}".format(opt.activation))
 
-    real = functions.read_image(opt)
+    if not opt.convert_to_YCbCr:
+        real = functions.read_image(opt)
+    else:
+        real = functions.read_image_as_YCbCr(opt)
+
     real = functions.adjust_scales2image(real, opt)
     reals = functions.create_reals_pyramid(real, opt)
     print("Training on image pyramid: {}".format([r.shape for r in reals]))
@@ -213,7 +217,9 @@ def train_single_scale(netD, netG, reals, img_to_augment, naive_img, naive_img_l
                 with torch.no_grad():
                     fake = netG(noise, reals_shapes, noise_amp)
 
-            output = netD(fake.detach())
+            with torch.no_grad():
+                temp = torch.clone(fake)
+            output = netD(temp)
             errD_fake = output.mean()
 
             gradient_penalty = functions.calc_gradient_penalty(netD, real, fake, opt.lambda_grad, opt.device)
