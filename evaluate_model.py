@@ -48,7 +48,6 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int, help='which GPU', default=0)
     parser.add_argument('--num_samples', type=int, help='which GPU', default=50)
     parser.add_argument('--naive_img', help='naive input image  (harmonization or editing)', default="")
-    parser.add_argument('--convert_to_YCbCr', help='should input be changed to YCbCr', default=False)
 
 
     opt = parser.parse_args()

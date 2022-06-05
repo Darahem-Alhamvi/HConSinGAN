@@ -20,10 +20,7 @@ def train(opt):
     print("\t learning rate scaling: {}".format(opt.lr_scale))
     print("\t non-linearity: {}".format(opt.activation))
 
-    if not opt.convert_to_YCbCr:
-        real = functions.read_image(opt)
-    else:
-        real = functions.read_image_as_YCbCr(opt)
+    real = functions.read_image(opt)
 
     real = functions.adjust_scales2image(real, opt)
     reals = functions.create_reals_pyramid(real, opt)

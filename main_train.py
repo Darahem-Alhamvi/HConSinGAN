@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--fine_tune', action='store_true', help='whether to fine tune on a given image', default=0)
     parser.add_argument('--model_dir', help='model to be used for fine tuning (harmonization or editing)', default="")
-    parser.add_argument('--convert_to_YCbCr', help='should input be changed to YCbCr', default=False)
+    parser.add_argument('--convert_to_hsv', help='should input be changed to hsv', default=False)
 
     opt = parser.parse_args()
     opt = functions.post_config(opt)

@@ -74,7 +74,7 @@ def move_to_cpu(t):
     return t
 
 
-def save_image(name, image):
+def save_image(name, image, convert_to_hsv=False):
     plt.imsave(name, convert_image_np(image), vmin=0, vmax=1)
 
 
@@ -128,15 +128,8 @@ def calc_gradient_penalty(netD, real_data, fake_data, LAMBDA, device):
 
 def read_image(opt):
     x = img.imread('%s' % (opt.input_name))
-    if opt.convert_to_YCbCr:
-        x = np2torch(x,opt)
-    x = x[:,0:3,:,:]
-    return x
-
-
-def read_image_as_YCbCr(opt):
-    x = img.imread('%s' % (opt.input_name))
-    x = skimage.color.rgb2ycbcr(x)
+    if opt.convert_to_hsv:
+        x = skimage.color.rgb2hsv(x)
     x = np2torch(x,opt)
     x = x[:,0:3,:,:]
     return x
