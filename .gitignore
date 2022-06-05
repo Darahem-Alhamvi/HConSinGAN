@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 /ConSinGAN-Supplementary.pdf
+TrainedModels/
