@@ -77,6 +77,7 @@ def move_to_cpu(t):
 
 def save_image(name, image, convert_to_hsv=False):
     if convert_to_hsv:
+        print("WARNING")
         img = convert_image_np(image)
         # img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
         img = skimage.color.hsv2rgb(img)
@@ -138,12 +139,9 @@ def calc_gradient_penalty(netD, real_data, fake_data, LAMBDA, device):
 
 def read_image(opt):
     x = img.imread('%s' % (opt.input_name))
-    if opt.convert_to_hsv:
-        #x = skimage.color.rgb2hsv(x)
-        #x = x.astype(int)
+    if opt.convert_to_hsv == True:
         x = cv2.imread('%s' % (opt.input_name))
         x = cv2.cvtColor(x, cv2.COLOR_BGR2HSV)
-
     x = np2torch(x,opt)
     x = x[:,0:3,:,:]
     return x
@@ -151,10 +149,10 @@ def read_image(opt):
 
 def read_image_dir(dir, opt):
     x = img.imread(dir)
-    if opt.convert_to_hsv:
+
+    if opt.convert_to_hsv == True:
         x = cv2.imread('%s' % (opt.input_name))
         x = cv2.cvtColor(x, cv2.COLOR_BGR2HSV)
-
     x = np2torch(x,opt)
     x = x[:,0:3,:,:]
     return x
@@ -187,6 +185,9 @@ def torch2uint8(x):
 
 def read_image2np(opt):
     x = img.imread('%s' % (opt.input_name))
+    if opt.convert_to_hsv == True:
+        x = cv2.imread('%s' % (opt.input_name))
+        x = cv2.cvtColor(x, cv2.COLOR_BGR2HSV)
     x = x[:, :, 0:3]
     return x
 
@@ -324,6 +325,7 @@ def dilate_mask(mask,opt):
     mask = mask.expand(1, 3, mask.shape[2], mask.shape[3])
     mask = (mask-mask.min())/(mask.max()-mask.min())
     return mask
+
 
 
 def shuffle_grid(image, max_tiles=5):
