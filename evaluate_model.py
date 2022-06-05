@@ -1,4 +1,6 @@
 import os
+
+import cv2
 import torch
 import torch.nn as nn
 import math
@@ -24,8 +26,8 @@ def generate_samples(netG, reals_shapes, noise_amp, scale_w=1.0, scale_h=1.0, re
             functions.save_image('{}/reconstruction.jpg'.format(dir2save), reconstruction.detach())
             functions.save_image('{}/real_image.jpg'.format(dir2save), reals[-1].detach())
         elif opt.train_mode == "harmonization" or opt.train_mode == "editing":
-            functions.save_image('{}/{}_wo_mask.jpg'.format(dir2save, _name), reconstruction.detach())
-            functions.save_image('{}/real_image.jpg'.format(dir2save), imresize_to_shape(real, reals_shapes[-1][2:], opt).detach())
+            functions.save_image('{}/{}_wo_mask.jpg'.format(dir2save, _name), reconstruction.detach(), opt.convert_to_hsv)
+            functions.save_image('{}/real_image.jpg'.format(dir2save), imresize_to_shape(real, reals_shapes[-1][2:], opt).detach(), opt.convert_to_hsv)
         return reconstruction
 
     if scale_w == 1. and scale_h == 1.:
@@ -39,7 +41,7 @@ def generate_samples(netG, reals_shapes, noise_amp, scale_w=1.0, scale_h=1.0, re
     for idx in range(n):
         noise = functions.sample_random_noise(opt.train_stages - 1, reals_shapes, opt)
         sample = netG(noise, reals_shapes, noise_amp)
-        functions.save_image('{}/gen_sample_{}.jpg'.format(dir2save_parent, idx), sample.detach())
+        functions.save_image('{}/gen_sample_{}.jpg'.format(dir2save_parent, idx), sample.detach(), opt.convert_to_hsv)
 
 
 if __name__ == '__main__':
@@ -48,6 +50,8 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int, help='which GPU', default=0)
     parser.add_argument('--num_samples', type=int, help='which GPU', default=50)
     parser.add_argument('--naive_img', help='naive input image  (harmonization or editing)', default="")
+    parser.add_argument('--convert_to_hsv', help='should input be changed to hsv', default=False)
+
 
 
     opt = parser.parse_args()
@@ -109,7 +113,7 @@ if __name__ == '__main__':
                 mask = imresize_to_shape(mask, [out.shape[2], out.shape[3]], opt)
             mask = functions.dilate_mask(mask, opt)
             out = (1 - mask) * reals[-1] + mask * out
-            functions.save_image('{}/{}_w_mask.jpg'.format(dir2save, _name), out.detach())
+            functions.save_image('{}/{}_w_mask.jpg'.format(dir2save, _name), out.detach(), opt.convert_to_hsv)
         else:
             print("Warning: mask {} not found.".format(mask_file_name))
             print("Harmonization/Editing only performed without mask.")
