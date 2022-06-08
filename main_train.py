@@ -5,7 +5,7 @@ import os.path as osp
 from shutil import copyfile, copytree
 import glob
 import time
-import randomxs
+import random
 import torch
 
 from ConSinGAN.config import get_arguments
