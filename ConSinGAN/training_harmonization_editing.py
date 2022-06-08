@@ -12,7 +12,6 @@ from ConSinGAN.imresize import imresize, imresize_to_shape
 import ConSinGAN.functions as functions
 import ConSinGAN.models as models
 
-
 def train(opt):
     print("Training model with the following parameters:")
     print("\t number of stages: {}".format(opt.train_stages))
@@ -21,7 +20,6 @@ def train(opt):
     print("\t non-linearity: {}".format(opt.activation))
 
     real = functions.read_image(opt)
-
     real = functions.adjust_scales2image(real, opt)
     reals = functions.create_reals_pyramid(real, opt)
     print("Training on image pyramid: {}".format([r.shape for r in reals]))
@@ -31,7 +29,7 @@ def train(opt):
         naive_img = functions.read_image_dir(opt.naive_img, opt)
         naive_img_large = imresize_to_shape(naive_img, reals[-1].shape[2:], opt)
         naive_img = imresize_to_shape(naive_img, reals[0].shape[2:], opt)
-        naive_img = functions.convert_image_np(naive_img) * 255.0
+        naive_img = functions.convert_image_np(naive_img)*255.0
     else:
         naive_img = None
         naive_img_large = None
@@ -39,34 +37,35 @@ def train(opt):
     if opt.fine_tune:
         img_to_augment = naive_img
     else:
-        img_to_augment = functions.convert_image_np(reals[0]) * 255.0
+        img_to_augment = functions.convert_image_np(reals[0])*255.0
 
     if opt.train_mode == "editing":
         opt.noise_scaling = 0.1
 
     generator = init_G(opt)
     if opt.fine_tune:
-        for _ in range(opt.train_stages - 1):
+        for _ in range(opt.train_stages-1):
             generator.init_next_stage()
-        generator.load_state_dict(torch.load('{}/{}/netG.pth'.format(opt.model_dir, opt.train_stages - 1),
+        generator.load_state_dict(torch.load('{}/{}/netG.pth'.format(opt.model_dir, opt.train_stages-1),
                                              map_location="cuda:{}".format(torch.cuda.current_device())))
+
 
     fixed_noise = []
     noise_amp = []
 
     for scale_num in range(opt.start_scale, opt.train_stages):
         opt.out_ = functions.generate_dir2save(opt)
-        opt.outf = '%s/%d' % (opt.out_, scale_num)
+        opt.outf = '%s/%d' % (opt.out_,scale_num)
         try:
             os.makedirs(opt.outf)
         except OSError:
-            print(OSError)
-            pass
+                print(OSError)
+                pass
         functions.save_image('{}/real_scale.jpg'.format(opt.outf), reals[scale_num])
 
         d_curr = init_D(opt)
         if opt.fine_tune:
-            d_curr.load_state_dict(torch.load('{}/{}/netD.pth'.format(opt.model_dir, opt.train_stages - 1),
+            d_curr.load_state_dict(torch.load('{}/{}/netD.pth'.format(opt.model_dir, opt.train_stages-1),
                                               map_location="cuda:{}".format(torch.cuda.current_device())))
         elif scale_num > 0:
             d_curr.load_state_dict(torch.load('%s/%d/netD.pth' % (opt.out_, scale_num - 1)))
@@ -84,6 +83,7 @@ def train(opt):
         del d_curr
     writer.close()
     return
+
 
 
 def train_single_scale(netD, netG, reals, img_to_augment, naive_img, naive_img_large,
@@ -107,9 +107,9 @@ def train_single_scale(netD, netG, reals, img_to_augment, naive_img, naive_img_l
                 z_opt = reals[0]
             elif opt.train_mode == "editing":
                 z_opt = reals[0] + opt.noise_scaling * functions.generate_noise([opt.nc_im,
-                                                                                 reals_shapes[depth][2],
-                                                                                 reals_shapes[depth][3]],
-                                                                                device=opt.device).detach()
+                                                                             reals_shapes[depth][2],
+                                                                             reals_shapes[depth][3]],
+                                                                             device=opt.device).detach()
         else:
             z_opt = functions.generate_noise([opt.nfc, reals_shapes[depth][2], reals_shapes[depth][3]],
                                              device=opt.device)
@@ -139,10 +139,8 @@ def train_single_scale(netD, netG, reals, img_to_augment, naive_img, naive_img_l
     optimizerG = optim.Adam(parameter_list, lr=opt.lr_g, betas=(opt.beta1, 0.999))
 
     # define learning rate schedules
-    schedulerD = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizerD, milestones=[0.8 * opt.niter],
-                                                      gamma=opt.gamma)
-    schedulerG = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizerG, milestones=[0.8 * opt.niter],
-                                                      gamma=opt.gamma)
+    schedulerD = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizerD, milestones=[0.8*opt.niter], gamma=opt.gamma)
+    schedulerG = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizerG, milestones=[0.8*opt.niter], gamma=opt.gamma)
 
     ############################
     # calculate noise_amp
@@ -192,7 +190,7 @@ def train_single_scale(netD, netG, reals, img_to_augment, naive_img, naive_img_l
                         image = functions.np2torch(image, opt) + \
                                 opt.noise_scaling * functions.generate_noise([3, reals_shapes[d][2],
                                                                               reals_shapes[d][3]],
-                                                                             device=opt.device).detach()
+                                                                              device=opt.device).detach()
                         noise.append(image)
             else:
                 noise.append(functions.generate_noise([opt.nfc, reals_shapes[d][2], reals_shapes[d][3]],
@@ -208,7 +206,7 @@ def train_single_scale(netD, netG, reals, img_to_augment, naive_img, naive_img_l
             errD_real = -output.mean()
 
             # train with fake
-            if j == opt.Dsteps - 1:
+            if j == opt.Dsteps -1:
                 fake = netG(noise, reals_shapes, noise_amp)
             else:
                 with torch.no_grad():
@@ -217,6 +215,7 @@ def train_single_scale(netD, netG, reals, img_to_augment, naive_img, naive_img_l
             with torch.no_grad():
                 temp = torch.clone(fake)
             output = netD(temp)
+
             errD_fake = output.mean()
 
             gradient_penalty = functions.calc_gradient_penalty(netD, real, fake, opt.lambda_grad, opt.device)
@@ -282,7 +281,7 @@ def generate_samples(netG, img_to_augment, naive_img, naive_img_large, aug, opt,
         pass
 
     if naive_img is not None:
-        n = n - 1
+        n = n-1
     if opt.fine_tune:
         n = 1
     with torch.no_grad():
@@ -297,7 +296,7 @@ def generate_samples(netG, img_to_augment, naive_img, naive_img_large, aug, opt,
                         elif opt.train_mode == "editing":
                             augmented_image = functions.np2torch(naive_img, opt)
                             noise.append(augmented_image + opt.noise_scaling *
-                                         functions.generate_noise([opt.nc_im, reals_shapes[d][2],
+                                         functions.generate_noise([opt.nc_im,reals_shapes[d][2],
                                                                    reals_shapes[d][3]], device=opt.device).detach())
                     else:
                         if opt.train_mode == "harmonization":
@@ -347,9 +346,9 @@ def generate_samples(netG, img_to_augment, naive_img, naive_img_large, aug, opt,
                             noise.append(functions.np2torch(naive_img, opt))
                         elif opt.train_mode == "editing":
                             noise.append(functions.np2torch(naive_img, opt) + opt.noise_scaling * \
-                                         functions.generate_noise([opt.nc_im, reals_shapes[d][2],
-                                                                   reals_shapes[d][3]],
-                                                                  device=opt.device).detach())
+                                              functions.generate_noise([opt.nc_im, reals_shapes[d][2],
+                                                                        reals_shapes[d][3]],
+                                                                        device=opt.device).detach())
                     else:
                         noise.append(functions.generate_noise([opt.nfc, reals_shapes[d][2], reals_shapes[d][3]],
                                                               device=opt.device).detach())
@@ -377,7 +376,6 @@ def get_mask(mask_file_name, real_img, opt):
     mask = functions.dilate_mask(mask, opt)
     return mask
 
-
 def init_G(opt):
     # generator initialization:
     netG = models.GrowingGenerator(opt).to(opt.device)
@@ -388,7 +386,7 @@ def init_G(opt):
 
 
 def init_D(opt):
-    # discriminator initialization:
+    #discriminator initialization:
     netD = models.Discriminator(opt).to(opt.device)
     netD.apply(models.weights_init)
     # print(netD)

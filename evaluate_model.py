@@ -48,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int, help='which GPU', default=0)
     parser.add_argument('--num_samples', type=int, help='which GPU', default=50)
     parser.add_argument('--naive_img', help='naive input image  (harmonization or editing)', default="")
+    parser.add_argument('--convert_to_hsv', help='should input be changed to hsv', default=False)
 
 
     opt = parser.parse_args()
@@ -96,9 +97,9 @@ if __name__ == '__main__':
         fixed_noise[0] = real
         if opt.train_mode == "editing":
             fixed_noise[0] = fixed_noise[0] + opt.noise_scaling * \
-                                              functions.generate_noise([opt.nc_im, fixed_noise[0].shape[2],
-                                                                        fixed_noise[0].shape[3]],
-                                                                        device=opt.device)
+                             functions.generate_noise([opt.nc_im, fixed_noise[0].shape[2],
+                                                       fixed_noise[0].shape[3]],
+                                                      device=opt.device)
 
         out = generate_samples(netG, reals_shapes, noise_amp, reconstruct=True)
 
