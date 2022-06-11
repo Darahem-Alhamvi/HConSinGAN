@@ -1,4 +1,6 @@
 import datetime
+import math
+
 import dateutil.tz
 import os
 import os.path as osp
@@ -10,6 +12,8 @@ import torch
 
 from ConSinGAN.config import get_arguments
 import ConSinGAN.functions as functions
+
+torch.cuda.empty_cache()
 
 
 def get_scale_factor(opt):
